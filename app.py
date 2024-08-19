@@ -1,10 +1,11 @@
-from fastapi import FastAPI 
+from flask import Flask, request, jsonify
 
-app = FastAPI()
+app = Flask(__name__)
 
-@app.get("/api")
+@app.route('/api')
+def home():
+    return "Welcome to the Metal As Hell API!"
 
-async def read_root():
-    return {"message": "Welcome to the API!"}
+if __name__ == '__main__':
+    app.run(debug=True)
 
-    

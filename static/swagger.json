@@ -1,0 +1,275 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "description": "API documentation for Metal As Hell",
+      "version": "1.0.0",
+      "title": "Metal As Hell API"
+    },
+    "host": "localhost:5000",
+    "basePath": "/",
+    "tags": [
+      {
+        "name": "Users",
+        "description": "User management"
+      },
+      {
+        "name": "Authentication",
+        "description": "User authentication"
+      },
+      {
+        "name": "Products",
+        "description": "Product management"
+      }
+    ],
+    "schemes": [
+      "http"
+    ],
+    "paths": {
+      "/api/users": {
+        "post": {
+          "tags": ["Users"],
+          "summary": "Create a new user",
+          "description": "",
+          "operationId": "createUser",
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "parameters": [
+            {
+              "in": "body",
+              "name": "body",
+              "description": "User object that needs to be added",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "User created successfully"
+            },
+            "400": {
+              "description": "Invalid input"
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          }
+        },
+        "get": {
+          "tags": ["Users"],
+          "summary": "Retrieve a list of users",
+          "description": "",
+          "operationId": "getUsers",
+          "produces": ["application/json"],
+          "parameters": [
+            {
+              "name": "page",
+              "in": "query",
+              "description": "Page number",
+              "required": false,
+              "type": "integer",
+              "default": 1
+            },
+            {
+              "name": "per_page",
+              "in": "query",
+              "description": "Number of users per page",
+              "required": false,
+              "type": "integer",
+              "default": 10
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "A list of users"
+            },
+            "404": {
+              "description": "No users found"
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          },
+          "security": [
+            {
+              "Bearer": []
+            }
+          ]
+        }
+      },
+      "/api/login": {
+        "post": {
+          "tags": ["Authentication"],
+          "summary": "User login",
+          "description": "",
+          "operationId": "loginUser",
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "parameters": [
+            {
+              "in": "body",
+              "name": "body",
+              "description": "User credentials",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/Login"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Login successful"
+            },
+            "400": {
+              "description": "Invalid input"
+            },
+            "401": {
+              "description": "Invalid credentials"
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          }
+        }
+      },
+      "/api/products": {
+        "post": {
+          "tags": ["Products"],
+          "summary": "Create a new product",
+          "description": "",
+          "operationId": "createProduct",
+          "consumes": ["application/json"],
+          "produces": ["application/json"],
+          "parameters": [
+            {
+              "in": "body",
+              "name": "body",
+              "description": "Product object that needs to be added",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/Product"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "Product created successfully"
+            },
+            "400": {
+              "description": "Invalid input"
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          },
+          "security": [
+            {
+              "Bearer": []
+            }
+          ]
+        }
+      },
+      "/api/products/{productid}": {
+        "get": {
+          "tags": ["Products"],
+          "summary": "Get a product by ID",
+          "description": "",
+          "operationId": "getProductById",
+          "produces": ["application/json"],
+          "parameters": [
+            {
+              "name": "productid",
+              "in": "path",
+              "description": "ID of product to return",
+              "required": true,
+              "type": "integer"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Product details"
+            },
+            "404": {
+              "description": "Product not found"
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          },
+          "security": [
+            {
+              "Bearer": []
+            }
+          ]
+        }
+      }
+    },
+    "definitions": {
+      "User": {
+        "type": "object",
+        "required": ["username", "firstname", "lastname", "email", "password"],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "firstname": {
+            "type": "string"
+          },
+          "lastname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": ["productname", "description", "price", "imageurl"],
+        "properties": {
+          "productname": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "float"
+          },
+          "imageurl": {
+            "type": "string",
+            "format": "url"
+          }
+        }
+      }
+    },
+    "securityDefinitions": {
+      "Bearer": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+      }
+    }
+  }
+  

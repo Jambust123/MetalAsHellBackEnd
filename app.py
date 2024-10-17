@@ -170,5 +170,5 @@ def get_product(product_id):
         return {'message': 'Internal Server Error'}, 500
 
 if __name__ == '__main__':
-    port = 4000  
-    app.run(port=port)
+    port = int(os.getenv("PORT", 4000))
+    app.run(host='0.0.0.0', port=port)

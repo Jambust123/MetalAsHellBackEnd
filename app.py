@@ -56,6 +56,9 @@ def create_tables():
 # Create the tables on startup
 create_tables()
 
+@app.get('/api')
+def welcome_message():
+    return {'message': 'Welcome to the Metal As Hell API'}
 # Define User Registration Endpoint
 @app.post('/api/users')
 def create_user():

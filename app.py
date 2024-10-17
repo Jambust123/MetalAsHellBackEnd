@@ -98,28 +98,47 @@ def create_user():
         logger.error(f"Error creating user: {e}")
         return {'message': 'Internal Server Error'}, 500
 
-# Define User Login Endpoint
-@app.post('/api/login')
-def login():
+@app.get('/api/users')
+def get_users():
     try:
-        data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
-
-        if not username or not password:
-            return {'message': 'Username and password are required'}, 400
-
         with connection_pool.getconn() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT password FROM users WHERE username = %s;", (username,))
+                cursor.execute("SELECT userid, username, email FROM users;")
+                users = cursor.fetchall()
+
+        if users:
+            user_list = []
+            for user in users:
+                user_list.append({
+                    'user_id': user[0],
+                    'username': user[1],
+                    'email': user[2]
+                })
+            return {'users': user_list}, 200
+        else:
+            return {'message': 'No users found'}, 404
+    except Exception as e:
+        logger.error(f"Error retrieving users: {e}")
+        return {'message': 'Internal Server Error'}, 500
+
+@app.get('/api/users/<username>')
+def get_user_by_username(username):
+    try:
+        with connection_pool.getconn() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT userid, username, email FROM users WHERE username = %s;", (username,))
                 user = cursor.fetchone()
 
-        if user and check_password_hash(user[0], password):
-            return {'message': 'Login successful'}, 200
+        if user:
+            return {
+                'user_id': user[0],
+                'username': user[1],
+                'email': user[2]
+            }, 200
         else:
-            return {'message': 'Invalid credentials'}, 401
+            return {'message': 'User not found'}, 404
     except Exception as e:
-        logger.error(f"Error during login: {e}")
+        logger.error(f"Error retrieving user: {e}")
         return {'message': 'Internal Server Error'}, 500
 
 # Define Create Product Endpoint

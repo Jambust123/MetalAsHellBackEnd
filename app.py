@@ -169,6 +169,6 @@ def get_product(product_id):
         logger.error(f"Error retrieving product: {e}")
         return {'message': 'Internal Server Error'}, 500
 
-# Run the Flask app
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = 4000  
+    app.run(port=port)

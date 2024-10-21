@@ -56,14 +56,14 @@ def create_tables():
 # Create the tables on startup
 create_tables()
 
-@app.get('/')
-def welcome_message():
-    return {'message': 'Welcome to the Metal As Hell API'}
+@app.route('/')
+def index():
+    return {'message': 'Welcome to the Metal As Hell API Home'}
 
 @app.get('/api')
 def welcome_message():
     return {'message': 'Welcome to the Metal As Hell API'}
-# Define User Registration Endpoint
+
 @app.post('/api/users')
 def create_user():
     try:

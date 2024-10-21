@@ -6,3 +6,4 @@ flask-jwt-extended
 flask-swagger-ui
 flask-limiter
 Werkzeug
+bcrypt

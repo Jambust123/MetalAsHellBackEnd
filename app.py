@@ -3,7 +3,7 @@ from psycopg2 import pool
 from dotenv import load_dotenv
 from flask import Flask, request
 import logging
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 
 # Load environment variables
 load_dotenv()

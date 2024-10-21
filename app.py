@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask, request
 import logging
 from werkzeug.security import generate_password_hash
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -15,7 +16,8 @@ if not DATABASE_URL:
 # Initialize Flask app
 app = Flask(__name__)
 
-# Setup Logging
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

@@ -56,6 +56,10 @@ def create_tables():
 # Create the tables on startup
 create_tables()
 
+@app.get('/')
+def welcome_message():
+    return {'message': 'Welcome to the Metal As Hell API'}
+
 @app.get('/api')
 def welcome_message():
     return {'message': 'Welcome to the Metal As Hell API'}

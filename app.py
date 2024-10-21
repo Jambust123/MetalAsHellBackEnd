@@ -78,14 +78,14 @@ def create_user():
         if not username or not email or not password:
             return {'message': 'Username, email, and password are required'}, 400
 
-        hashed_password = generate_password_hash(password, method='bcrypt')
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         with connection_pool.getconn() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s;", (username,))
                 if cursor.fetchone()[0] > 0:
                     return {'message': 'Username already exists'}, 400
-
+                
                 cursor.execute("SELECT COUNT(*) FROM users WHERE email = %s;", (email,))
                 if cursor.fetchone()[0] > 0:
                     return {'message': 'Email already exists'}, 400
@@ -96,11 +96,15 @@ def create_user():
                 """, (username, email, hashed_password))
                 user_id = cursor.fetchone()[0]
 
+                conn.commit()
+
         logger.info(f"User '{username}' created with ID {user_id}")
         return {'user_id': user_id, 'message': f'User "{username}" created successfully'}, 201
+
     except Exception as e:
-        logger.error(f"Error creating user: {e}")
-        return {'message': 'Internal Server Error'}, 500
+        logger.error(f"Error creating user: {str(e)}")
+        return {'message': f'Internal Server Error: {str(e)}'}, 500
+
 
 @app.get('/api/users')
 def get_users():

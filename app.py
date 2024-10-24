@@ -16,8 +16,10 @@ if not DATABASE_URL:
 # Initialize Flask app
 app = Flask(__name__)
 
+# Enable CORS
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
+# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,6 @@ logger = logging.getLogger(__name__)
 connection_pool = pool.SimpleConnectionPool(1, 20, dsn=DATABASE_URL)
 
 # Function to create tables if they don't exist
-
 def create_tables():
     create_users_table = """
     CREATE TABLE IF NOT EXISTS users (
@@ -82,23 +83,24 @@ def create_user():
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
-        with connection_pool.getconn() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s;", (username,))
-                if cursor.fetchone()[0] > 0:
-                    return {'message': 'Username already exists'}, 400
-                
-                cursor.execute("SELECT COUNT(*) FROM users WHERE email = %s;", (email,))
-                if cursor.fetchone()[0] > 0:
-                    return {'message': 'Email already exists'}, 400
+        # Get a connection from the pool
+        conn = connection_pool.getconn()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s;", (username,))
+            if cursor.fetchone()[0] > 0:
+                return {'message': 'Username already exists'}, 400
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE email = %s;", (email,))
+            if cursor.fetchone()[0] > 0:
+                return {'message': 'Email already exists'}, 400
 
-                cursor.execute("""
-                    INSERT INTO users (username, email, password)
-                    VALUES (%s, %s, %s) RETURNING userid;
-                """, (username, email, hashed_password))
-                user_id = cursor.fetchone()[0]
+            cursor.execute("""
+                INSERT INTO users (username, email, password)
+                VALUES (%s, %s, %s) RETURNING userid;
+            """, (username, email, hashed_password))
+            user_id = cursor.fetchone()[0]
 
-                conn.commit()
+            conn.commit()
 
         logger.info(f"User '{username}' created with ID {user_id}")
         return {'user_id': user_id, 'message': f'User "{username}" created successfully'}, 201
@@ -106,15 +108,17 @@ def create_user():
     except Exception as e:
         logger.error(f"Error creating user: {str(e)}")
         return {'message': f'Internal Server Error: {str(e)}'}, 500
-
+    finally:
+        if conn:
+            connection_pool.putconn(conn)
 
 @app.get('/api/users')
 def get_users():
     try:
-        with connection_pool.getconn() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT userid, username, email FROM users;")
-                users = cursor.fetchall()
+        conn = connection_pool.getconn()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT userid, username, email FROM users;")
+            users = cursor.fetchall()
 
         if users:
             user_list = []
@@ -130,14 +134,17 @@ def get_users():
     except Exception as e:
         logger.error(f"Error retrieving users: {e}")
         return {'message': 'Internal Server Error'}, 500
+    finally:
+        if conn:
+            connection_pool.putconn(conn)
 
 @app.get('/api/users/<username>')
 def get_user_by_username(username):
     try:
-        with connection_pool.getconn() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT userid, username, email FROM users WHERE username = %s;", (username,))
-                user = cursor.fetchone()
+        conn = connection_pool.getconn()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT userid, username, email FROM users WHERE username = %s;", (username,))
+            user = cursor.fetchone()
 
         if user:
             return {
@@ -150,6 +157,9 @@ def get_user_by_username(username):
     except Exception as e:
         logger.error(f"Error retrieving user: {e}")
         return {'message': 'Internal Server Error'}, 500
+    finally:
+        if conn:
+            connection_pool.putconn(conn)
 
 # Define Create Product Endpoint
 @app.post('/api/products')
@@ -166,27 +176,31 @@ def create_product():
         if not productname or not description or not price:
             return {'message': 'Product name, description, and price are required'}, 400
 
-        with connection_pool.getconn() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO products (productname, description, price)
-                    VALUES (%s, %s, %s) RETURNING productid;
-                """, (productname, description, price))
-                product_id = cursor.fetchone()[0]
+        conn = connection_pool.getconn()
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO products (productname, description, price)
+                VALUES (%s, %s, %s) RETURNING productid;
+            """, (productname, description, price))
+            product_id = cursor.fetchone()[0]
+            conn.commit()
 
         return {'product_id': product_id, 'message': f'Product "{productname}" created successfully'}, 201
     except Exception as e:
         logger.error(f"Error creating product: {e}")
         return {'message': 'Internal Server Error'}, 500
+    finally:
+        if conn:
+            connection_pool.putconn(conn)
 
 # Define Get Product Endpoint
 @app.get('/api/products/<int:product_id>')
 def get_product(product_id):
     try:
-        with connection_pool.getconn() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM products WHERE productid = %s;", (product_id,))
-                product = cursor.fetchone()
+        conn = connection_pool.getconn()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM products WHERE productid = %s;", (product_id,))
+            product = cursor.fetchone()
 
         if product:
             return {
@@ -200,15 +214,18 @@ def get_product(product_id):
     except Exception as e:
         logger.error(f"Error retrieving product: {e}")
         return {'message': 'Internal Server Error'}, 500
+    finally:
+        if conn:
+            connection_pool.putconn(conn)
 
-        # Define Get All Products Endpoint
+# Define Get All Products Endpoint
 @app.get('/api/products')
 def get_all_products():
     try:
-        with connection_pool.getconn() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM products;")
-                products = cursor.fetchall()
+        conn = connection_pool.getconn()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM products;")
+            products = cursor.fetchall()
 
         if products:
             result = []
@@ -226,7 +243,9 @@ def get_all_products():
     except Exception as e:
         logger.error(f"Error retrieving products: {e}")
         return {'message': 'Internal Server Error'}, 500
-
+    finally:
+        if conn:
+            connection_pool.putconn(conn)
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 4000))

@@ -201,6 +201,33 @@ def get_product(product_id):
         logger.error(f"Error retrieving product: {e}")
         return {'message': 'Internal Server Error'}, 500
 
+        # Define Get All Products Endpoint
+@app.get('/api/products')
+def get_all_products():
+    try:
+        with connection_pool.getconn() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM products;")
+                products = cursor.fetchall()
+
+        if products:
+            result = []
+            for product in products:
+                result.append({
+                    'product_id': product[0],
+                    'productname': product[1],
+                    'description': product[2],
+                    'price': float(product[3])
+                })
+
+            return result, 200
+        else:
+            return {'message': 'No products found'}, 404
+    except Exception as e:
+        logger.error(f"Error retrieving products: {e}")
+        return {'message': 'Internal Server Error'}, 500
+
+
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 4000))
     app.run(host='0.0.0.0', port=port)

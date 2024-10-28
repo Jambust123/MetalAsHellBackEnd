@@ -11,3 +11,14 @@ class Category:
             categoryname VARCHAR(50) UNIQUE NOT NULL
         );
         """
+
+    @classmethod
+    def seed_categories(cls):
+        return """
+        INSERT INTO categories (categoryname) VALUES
+            ('bracelets'),
+            ('earrings'),
+            ('necklaces'),
+            ('other')
+        ON CONFLICT (categoryname) DO NOTHING;
+        """

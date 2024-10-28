@@ -10,17 +10,21 @@ def create_product():
     productname = data.get('productname')
     description = data.get('description')
     price = data.get('price')
+    image_url = data.get('image_url')
 
     if not productname or not description or not price:
         return {'message': 'Product name, description, and price are required'}, 400
+
+    if image_url and not isinstance(image_url, str):
+        return {'message': 'Image URL must be a string'}, 400
 
     try:
         with connection_pool.getconn() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO products (productname, description, price)
-                    VALUES (%s, %s, %s) RETURNING productid;
-                """, (productname, description, price))
+                    INSERT INTO products (productname, description, price, image_url)
+                    VALUES (%s, %s, %s, %s) RETURNING productid;
+                """, (productname, description, price, image_url))
                 product_id = cursor.fetchone()[0]
                 conn.commit()
 
@@ -43,7 +47,8 @@ def get_all_products():
                     'product_id': product[0],
                     'productname': product[1],
                     'description': product[2],
-                    'price': float(product[3])
+                    'price': float(product[3]),
+                    'image_url': product[4],
                 })
             return result, 200
         else:
@@ -51,7 +56,9 @@ def get_all_products():
     except Exception as e:
         return {'message': 'Internal Server Error'}, 500
 
+
 # Get product by ID function
+
 def get_product_by_id(product_id):
     try:
         with connection_pool.getconn() as conn:
@@ -64,9 +71,12 @@ def get_product_by_id(product_id):
                 'product_id': product[0],
                 'productname': product[1],
                 'description': product[2],
-                'price': float(product[3])
+                'price': float(product[3]),
+                'image_url': product[4], 
             }, 200
         else:
             return {'message': 'Product not found'}, 404
     except Exception as e:
         return {'message': 'Internal Server Error'}, 500
+
+

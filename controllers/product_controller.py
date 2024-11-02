@@ -54,6 +54,7 @@ def get_all_products():
         else:
             return {'message': 'No products found'}, 404
     except Exception as e:
+        print(f"Error in get_all_products: {e}")
         return {'message': 'Internal Server Error'}, 500
 
 

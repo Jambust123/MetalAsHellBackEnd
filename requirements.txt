@@ -1,5 +1,6 @@
 Flask
 flask-cors
+Flask-Testing
 psycopg2-binary
 python-dotenv
 marshmallow

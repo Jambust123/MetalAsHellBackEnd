@@ -1,46 +1,70 @@
 from flask import request
-from psycopg2 import pool
 from werkzeug.security import generate_password_hash
-from models.user import User
-from utils.db import connection_pool 
+import logging
+from utils.db import connection_pool
 
-# Create user function
+# Setup logging
+logging.basicConfig(level=logging.DEBUG)
+
 def create_user():
-    data = request.get_json()
-    if not data:
-        return {'message': 'No input data provided'}, 400
+    try:
+        # Get the JSON data from the request
+        data = request.get_json()
 
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    is_admin = data.get('is_admin', False)  # Default to False if not provided
+        # Validate that we received data
+        if not data:
+            logging.error("No input data provided.")
+            return {'message': 'No input data provided'}, 400
 
-    if not username or not email or not password:
-        return {'message': 'Username, email, and password are required'}, 400
+        # Extract required fields from the request
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        is_admin = data.get('is_admin', False)  # Default to False if not provided
 
-    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        # Validate required fields
+        if not username or not email or not password:
+            logging.error(f"Missing fields: username={username}, email={email}, password={password}")
+            return {'message': 'Username, email, and password are required'}, 400
 
-    with connection_pool.getconn() as conn:
-        with conn.cursor() as cursor:
-            # Check for existing username
-            cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s;", (username,))
-            if cursor.fetchone()[0] > 0:
-                return {'message': 'Username already exists'}, 400
-            
-            # Check for existing email
-            cursor.execute("SELECT COUNT(*) FROM users WHERE email = %s;", (email,))
-            if cursor.fetchone()[0] > 0:
-                return {'message': 'Email already exists'}, 400
+        # Hash the password using werkzeug security
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
-            # Insert new user with is_admin field
-            cursor.execute("""
-                INSERT INTO users (username, email, password, is_admin)
-                VALUES (%s, %s, %s, %s) RETURNING userid;
-            """, (username, email, hashed_password, is_admin))
-            user_id = cursor.fetchone()[0]
-            conn.commit()
+        # Use connection pool to get a DB connection
+        with connection_pool.getconn() as conn:
+            with conn.cursor() as cursor:
+                # Check if the username already exists in the database
+                cursor.execute("SELECT COUNT(*) FROM users WHERE username = %s;", (username,))
+                if cursor.fetchone()[0] > 0:
+                    logging.error(f"Username '{username}' already exists.")
+                    return {'message': 'Username already exists'}, 400
 
-    return {'user_id': user_id, 'message': f'User "{username}" created successfully'}, 201
+                # Check if the email already exists in the database
+                cursor.execute("SELECT COUNT(*) FROM users WHERE email = %s;", (email,))
+                if cursor.fetchone()[0] > 0:
+                    logging.error(f"Email '{email}' already exists.")
+                    return {'message': 'Email already exists'}, 400
+
+                # Insert the new user into the database
+                cursor.execute("""
+                    INSERT INTO users (username, email, password, is_admin)
+                    VALUES (%s, %s, %s, %s) RETURNING userid;
+                """, (username, email, hashed_password, is_admin))
+
+                # Get the user ID of the newly created user
+                user_id = cursor.fetchone()[0]
+                conn.commit()
+
+                logging.info(f"User '{username}' created successfully with user ID {user_id}.")
+
+        # Return success response
+        return {'user_id': user_id, 'message': f'User "{username}" created successfully'}, 201
+
+    except Exception as e:
+        # Log the error for debugging purposes
+        logging.error(f"Error creating user: {str(e)}")
+        return {'message': 'Internal Server Error'}, 500
+
 
 # Get all users function
 def get_users():

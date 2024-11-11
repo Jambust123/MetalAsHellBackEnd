@@ -6,6 +6,7 @@ from controllers.category_controller import get_categories
 from utils.db import connection_pool
 from models.category import Category
 from models.product import Product
+from models.user import User
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
@@ -17,6 +18,7 @@ def initialize_database():
             cursor.execute(Category.create_table())
             cursor.execute(Category.seed_categories())
             cursor.execute(Product.create_table())
+            cursor.execute(User.create_table())
             conn.commit()
 
 @app.route('/api/users', methods=['POST'])

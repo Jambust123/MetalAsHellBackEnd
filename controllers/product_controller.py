@@ -11,6 +11,7 @@ def create_product():
     description = data.get('description')
     price = data.get('price')
     image_url = data.get('image_url')
+    category_id = data.get('category_id')
 
     if not productname or not description or not price:
         return {'message': 'Product name, description, and price are required'}, 400
@@ -18,13 +19,16 @@ def create_product():
     if image_url and not isinstance(image_url, str):
         return {'message': 'Image URL must be a string'}, 400
 
+    if category_id and not isinstance(category_id, int):
+        return {'message': 'Category ID must be an integer'}, 400
+    
     try:
         with connection_pool.getconn() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO products (productname, description, price, image_url)
                     VALUES (%s, %s, %s, %s) RETURNING productid;
-                """, (productname, description, price, image_url))
+                """, (productname, description, price, image_url, category_id))
                 product_id = cursor.fetchone()[0]
                 conn.commit()
 

@@ -26,9 +26,9 @@ def create_product():
         with connection_pool.getconn() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO products (productname, description, price, image_url)
-                    VALUES (%s, %s, %s, %s) RETURNING productid;
-                """, (productname, description, price, image_url, category_id))
+                    INSERT INTO products (productname, description, price, categoryid, image_url)
+                    VALUES (%s, %s, %s, %s, %s) RETURNING productid;
+                """, (productname, description, price, category_id, image_url))
                 product_id = cursor.fetchone()[0]
                 conn.commit()
 

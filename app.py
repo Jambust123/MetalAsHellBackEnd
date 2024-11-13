@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from controllers.user_controller import create_user, get_users, get_user_by_username
-from controllers.product_controller import create_product, get_all_products, get_product_by_id
+from controllers.product_controller import create_product, get_all_products, get_product_by_id, get_products_by_category
 from controllers.category_controller import get_categories
 from utils.db import connection_pool
 from models.category import Category
@@ -40,6 +40,10 @@ def product_creation():
 @app.route('/api/products', methods=['GET'])
 def list_products():
     return get_all_products()
+
+@app.route('/api/products/category/<int:category_id>', methods=['GET'])
+def products_by_category(category_id):
+    return get_products_by_category(category_id)
 
 @app.route('/api/categories', methods=['GET'])
 def categories_list():

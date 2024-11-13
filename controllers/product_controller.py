@@ -52,7 +52,8 @@ def get_all_products():
                     'productname': product[1],
                     'description': product[2],
                     'price': float(product[3]),
-                    'image_url': product[4],
+                    'category_id': product[4],
+                    'image_url': product[5],
                 })
             return result, 200
         else:
@@ -77,11 +78,36 @@ def get_product_by_id(product_id):
                 'productname': product[1],
                 'description': product[2],
                 'price': float(product[3]),
-                'image_url': product[4], 
+                'category_id': product[4],
+                'image_url': product[5],
             }, 200
         else:
             return {'message': 'Product not found'}, 404
     except Exception as e:
         return {'message': 'Internal Server Error'}, 500
 
+def get_products_by_category(category_id):
+    try:
+        with connection_pool.getconn() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM products WHERE categoryid = %s;", (category_id,))
+                products = cursor.fetchall()
+
+        if products:
+            result = []
+            for product in products:
+                result.append({
+                    'product_id': product[0],
+                    'productname': product[1],
+                    'description': product[2],
+                    'price': float(product[3]),
+                    'category_id': product[4],
+                    'image_url': product[5],
+                })
+            return result, 200
+        else:
+            return {'message': 'No products found for this category'}, 404
+    except Exception as e:
+        print(f"Error in get_products_by_category: {e}")
+        return {'message': 'Internal Server Error'}, 500
 

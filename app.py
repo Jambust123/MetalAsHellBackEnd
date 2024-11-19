@@ -8,7 +8,7 @@ from models.category import Category
 from models.product import Product
 from models.user import User
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 def initialize_database():
@@ -45,13 +45,13 @@ def list_products():
 def products_by_category(category_id):
     return get_products_by_category(category_id)
 
-@app.route('/api/categories', methods=['GET'])
-def categories_list():
-    return get_categories()
-
 @app.route('/api/products/<int:product_id>', methods=['GET'])
 def product_details(product_id):
     return get_product_by_id(product_id)
+
+@app.route('/api/categories', methods=['GET'])
+def categories_list():
+    return get_categories()
 
 if __name__ == '__main__':
     # Initialize the database when the application starts

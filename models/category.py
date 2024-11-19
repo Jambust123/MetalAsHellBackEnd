@@ -8,7 +8,7 @@ class Category:
         return """
         CREATE TABLE IF NOT EXISTS categories (
             categoryid SERIAL PRIMARY KEY,
-            categoryname VARCHAR(50) UNIQUE NOT NULL
+            categoryname VARCHAR(100) UNIQUE NOT NULL
         );
         """
 
@@ -22,3 +22,6 @@ class Category:
             ('other')
         ON CONFLICT (categoryname) DO NOTHING;
         """
+    
+    def __repr__(self):
+        return f"Category(id={self.categoryid}, name={self.categoryname})"

@@ -6,6 +6,10 @@ from utils.db import connection_pool
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 UPLOAD_FOLDER = 'uploads/images'
 
+# Ensure the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -21,10 +25,12 @@ def create_product():
     if image and allowed_file(image.filename):
         filename = secure_filename(image.filename)
         image_path = os.path.join(UPLOAD_FOLDER, filename)
-        image.save(image_path) 
-
-
-        image_url = f"/static/{image_path}" 
+        try:
+            image.save(image_path)  # Save the image to the file system
+            image_url = f"/static/{image_path.replace('uploads', '')}"  # Adjust URL path
+        except Exception as e:
+            print(f"Error saving image: {e}")
+            return {'message': 'Error saving image'}, 500
 
     else:
         return {'message': 'Invalid image format'}, 400

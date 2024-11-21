@@ -16,6 +16,8 @@ def allowed_file(filename):
 # Create product function
 def create_product():
     data = request.form 
+    print("Request data:", data)
+    print("Request files:", request.files)
     
     if 'image' not in request.files:
         return {'message': 'No image part in the request'}, 400

@@ -15,28 +15,7 @@ def allowed_file(filename):
 
 # Create product function
 def create_product():
-    data = request.form 
-    print("Request data:", data)
-    print("Request files:", request.files)
-    
-    if 'image' not in request.files:
-        return {'message': 'No image part in the request'}, 400
-
-    image = request.files['image']
-    
-    if image and allowed_file(image.filename):
-        filename = secure_filename(image.filename)
-        image_path = os.path.join(UPLOAD_FOLDER, filename)
-        try:
-            image.save(image_path)  # Save the image to the file system
-            image_url = f"/static/{image_path.replace('uploads', '')}"  # Adjust URL path
-        except Exception as e:
-            print(f"Error saving image: {e}")
-            return {'message': 'Error saving image'}, 500
-
-    else:
-        return {'message': 'Invalid image format'}, 400
-
+    data = request.form  # For text fields
     productname = data.get('productname')
     description = data.get('description')
     price = data.get('price')
@@ -45,23 +24,29 @@ def create_product():
     if not productname or not description or not price:
         return {'message': 'Product name, description, and price are required'}, 400
 
-    if category_id and not isinstance(category_id, int):
-        return {'message': 'Category ID must be an integer'}, 400
-    
+    file = request.files.get('image')
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+    else:
+        file_path = None
+
     try:
         with connection_pool.getconn() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO products (productname, description, price, categoryid, image_url)
                     VALUES (%s, %s, %s, %s, %s) RETURNING productid;
-                """, (productname, description, price, category_id, image_url))
+                """, (productname, description, price, category_id, file_path))
                 product_id = cursor.fetchone()[0]
                 conn.commit()
 
         return {'product_id': product_id, 'message': f'Product "{productname}" created successfully'}, 201
     except Exception as e:
-        print(f"Error in creating product: {e}")
+        print(f"Error creating product: {e}")
         return {'message': 'Internal Server Error'}, 500
+
 
 
 def get_all_products():

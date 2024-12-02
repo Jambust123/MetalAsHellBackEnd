@@ -16,6 +16,6 @@ class Product:
             description TEXT NOT NULL,
             price DECIMAL(10, 2) NOT NULL,
             categoryid INTEGER REFERENCES categories(categoryid) ON DELETE SET NULL,
-            image_url VARCHAR(255)
+            image_url VARCHAR(500)
         );
         """

@@ -32,6 +32,7 @@ def create_product():
         filename = secure_filename(file.filename)
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
+        image_url = f'/uploads/{filename}'
     else:
         file_path = None
 
@@ -41,7 +42,7 @@ def create_product():
                 cursor.execute("""
                     INSERT INTO products (productname, description, price, categoryid, image_url)
                     VALUES (%s, %s, %s, %s, %s) RETURNING productid;
-                """, (productname, description, price, category_id, file_path))
+                """, (productname, description, price, category_id, file_path, image_url))
                 product_id = cursor.fetchone()[0]
                 conn.commit()
 

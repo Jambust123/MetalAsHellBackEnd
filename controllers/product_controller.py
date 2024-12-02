@@ -2,6 +2,9 @@ import os
 from werkzeug.utils import secure_filename
 from flask import request
 from utils.db import connection_pool 
+from config import UPLOAD_FOLDER, ALLOWED_EXTENSIONS
+
+
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 UPLOAD_FOLDER = 'uploads/images'
@@ -27,7 +30,7 @@ def create_product():
     file = request.files.get('image')
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
     else:
         file_path = None

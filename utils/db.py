@@ -10,3 +10,4 @@ if not DATABASE_URL:
 
 
 connection_pool = pool.SimpleConnectionPool(1, 20, dsn=DATABASE_URL)
+

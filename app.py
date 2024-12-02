@@ -71,10 +71,13 @@ def product_details(product_id):
 def categories_list():
     return get_categories()
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
+@app.route('/images/<filename>')
+def serve_image(filename):
+    try:
+        return send_from_directory(UPLOAD_FOLDER, filename)
+    except Exception as e:
+        return {'message': f'Error: {str(e)}'}, 500
+    
 @app.route('/api/create-payment-intent', methods=['POST'])
 def create_payment_intent():
     """

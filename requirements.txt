@@ -9,3 +9,4 @@ flask-swagger-ui
 flask-limiter
 Werkzeug
 bcrypt
+stripe
